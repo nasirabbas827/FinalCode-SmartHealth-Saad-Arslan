@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% block title %}SHMS AI - Smart Health Monitoring{% endblock %}
+
+{% block content %}
+<div class="jumbotron jumbotron-fluid text-white mb-0" style="background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat; padding: 8rem 0; border-radius: 0;">
+    <div class="container text-center">
+        <h1 class="display-3 mb-3 font-weight-bold"><i class="fas fa-heartbeat mr-3 text-primary"></i>SHMS AI</h1>
+        <p class="lead mb-4 mx-auto" style="max-width: 700px;">Predicting the future of your wellness today. Use our advanced AI models to monitor vitals, predict health risks, and stay ahead of chronic conditions.</p>
+        
+        {% if request.session.user_id %}
+            <div class="d-flex justify-content-center align-items-center">
+                <span class="mr-3 lead text-light">Welcome back, <strong>{{ request.session.username }}</strong>!</span>
+                <a href="#analyze" class="btn btn-primary btn-lg btn-hover px-5 shadow-lg">New Health Check</a>
+            </div>
+        {% else %}
+            <div class="mt-4">
+                <a href="{% url 'login' %}" class="btn btn-primary btn-lg btn-hover px-5 mr-3 shadow-lg">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Login
+                </a>
+                <a href="{% url 'register' %}" class="btn btn-outline-light btn-lg btn-hover px-5 shadow-lg">
+                    <i class="fas fa-user-plus mr-2"></i>Register
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="bg-light py-5 border-bottom">
+    <div class="container text-center">
+        <div class="row">
+            <div class="col-md-4">
+                <i class="fas fa-vial fa-3x text-primary mb-3"></i>
+                <h5>Vitals Logging</h5>
+                <p class="text-muted">Track blood pressure, sugar levels, and heart rate daily.</p>
+            </div>
+            <div class="col-md-4">
+                <i class="fas fa-brain fa-3x text-primary mb-3"></i>
+                <h5>Risk Prediction</h5>
+                <p class="text-muted">Advanced ML models evaluate risks for Hypertension and Diabetes.</p>
+            </div>
+            <div class="col-md-4">
+                <i class="fas fa-chart-line fa-3x text-primary mb-3"></i>
+                <h5>Health Trends</h5>
+                <p class="text-muted">Visualize your progress with AI-generated interactive charts.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="analyze" class="container my-5">
+    {% if request.session.user_id %}
+    <div class="row">
+        <div class="col-lg-7">
+            <div class="card shadow border-0 mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 font-weight-bold text-primary"><i class="fas fa-notes-medical mr-2"></i>Symptom & Vitals Checker</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-group mb-4">
+                            <textarea class="form-control bg-light" name="health_text" id="health_text" rows="6" placeholder="Describe your current symptoms or paste your latest lab results for AI wellness analysis..." required>{{ health_text|default_if_none:"" }}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block btn-lg shadow-sm">
+                            <i class="fas fa-microchip mr-2"></i>Run AI Wellness Check
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            {% if prediction %}
+            <div class="card shadow border-0 h-100 bg-dark text-white">
+                <div class="card-body text-center d-flex flex-column justify-content-center">
+                    <h5 class="text-uppercase small mb-4 tracking-widest text-primary">AI Risk Assessment</h5>
+                    
+                    <div class="mb-4">
+                        {% if prediction.risk_level == "High" %}
+                            <h2 class="display-4 font-weight-bold text-danger">HIGH RISK</h2>
+                        {% else %}
+                            <h2 class="display-4 font-weight-bold text-success">STABLE</h2>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-4 px-3">
+                        <p class="mb-2">Prediction Confidence: {{ prediction.confidence }}%</p>
+                        <div class="progress bg-secondary" style="height: 10px; border-radius: 5px;">
+                            <div class="progress-bar {% if prediction.risk_level == 'High' %}bg-danger{% else %}bg-success{% endif %}" 
+                                 style="width: {{ prediction.confidence }}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="row pt-3 border-top border-secondary mx-2">
+                        <div class="col-6">
+                            <small class="d-block text-muted">Metabolic Score</small>
+                            <span class="font-weight-bold">{{ prediction.metabolic_status }}</span>
+                        </div>
+                        <div class="col-6 border-left border-secondary">
+                            <small class="d-block text-muted">Cardio Index</small>
+                            <span class="font-weight-bold">{{ prediction.cardio_status }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="card shadow border-0 h-100 d-flex align-items-center justify-content-center text-center p-5 bg-light">
+                <div class="opacity-50">
+                    <i class="fas fa-stethoscope fa-4x text-muted mb-3"></i>
+                    <p class="lead mb-0">AI Assessment results will appear here after you describe your symptoms.</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if health_history %}
+    <div class="mt-5">
+        <div class="d-flex justify-content-between align-items-end mb-3">
+            <h3 class="font-weight-bold">Recent Health Logs</h3>
+            <a href="{% url 'health_records_list' %}" class="btn btn-sm btn-link">Full Medical History →</a>
+        </div>
+        <div class="table-responsive shadow-sm rounded">
+            <table class="table table-hover bg-white mb-0">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Date Recorded</th>
+                        <th>Vitals Summary</th>
+                        <th>Risk Level</th>
+                        <th>Exercise</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in health_history|slice:":5" %}
+                    <tr>
+                        <td class="font-weight-bold">{{ record.date|date:"M d, Y" }}</td>
+                        <td class="text-muted">BP: {{ record.systolic_bp }}/{{ record.diastolic_bp }} | Sugar: {{ record.sugar_level }}</td>
+                        <td>
+                            {% if record.risk_score > 70 %}
+                                <span class="badge badge-pill badge-danger">Attention Required</span>
+                            {% else %}
+                                <span class="badge badge-pill badge-success">Good Standing</span>
+                            {% endif %}
+                        </td>
+                        <td><i class="fas fa-running text-primary mr-1"></i> {{ record.exercise_minutes }} min</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="row my-5">
+        <div class="col-md-6 offset-md-3 text-center py-5">
+            <div class="card border-0 shadow-lg p-5 rounded-lg">
+                <div class="bg-light d-inline-block p-4 rounded-circle mb-4 mx-auto">
+                    <i class="fas fa-user-lock fa-3x text-primary"></i>
+                </div>
+                <h3>Your Health, Private & Secured</h3>
+                <p class="text-muted">Sign up to securely store your health records, access AI diagnostic tools, and generate progress reports.</p>
+                <div class="mt-4">
+                    <a href="{% url 'register' %}" class="btn btn-primary btn-lg px-5 shadow">Get Started Now</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .tracking-widest { letter-spacing: 0.2rem; }
+    .btn-hover:hover { transform: translateY(-3px); transition: 0.3s; }
+    .opacity-50 { opacity: 0.5; }
+    .badge-pill { padding: 0.5em 1.2em; border-radius: 50px; }
+    .rounded-lg { border-radius: 1.5rem !important; }
+</style>
+{% endblock %}

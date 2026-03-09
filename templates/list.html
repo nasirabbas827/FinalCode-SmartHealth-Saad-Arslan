@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}My Health History | SHMS AI{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row align-items-center mb-4">
+        <div class="col-md-6">
+            <h3 class="font-weight-bold text-dark">
+                <i class="fas fa-history text-primary mr-2"></i>My Health History
+            </h3>
+            <p class="text-muted small">View, update, and manage your daily health logs.</p>
+        </div>
+        <div class="col-md-6 text-md-right">
+            <a href="{% url 'health_record_import' %}" class="btn btn-outline-success shadow-sm mr-2">
+                <i class="fas fa-file-import mr-1"></i> Bulk Import
+            </a>
+            <a href="{% url 'health_record_create' %}" class="btn btn-primary shadow-sm px-4">
+                <i class="fas fa-plus-circle mr-1"></i> Add New Record
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-lg rounded-lg overflow-hidden">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-dark text-white">
+                        <tr>
+                            <th class="border-0 px-4 py-3">Date</th>
+                            <th class="border-0 py-3">Weight (kg)</th>
+                            <th class="border-0 py-3">BP (S/D)</th>
+                            <th class="border-0 py-3">Sugar Level</th>
+                            <th class="border-0 py-3">Sleep</th>
+                            <th class="border-0 py-3">Exercise</th>
+                            <th class="border-0 py-3 text-center">Stress</th>
+                            <th class="border-0 px-4 py-3 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in records %}
+                        <tr>
+                            <td class="px-4 font-weight-bold text-primary align-middle">
+                                {{ record.date|date:"M d, Y" }}
+                            </td>
+                            <td class="align-middle">{{ record.weight }}</td>
+                            <td class="align-middle">
+                                <span class="badge badge-light p-2 border">
+                                    {{ record.systolic_bp }}/{{ record.diastolic_bp }}
+                                </span>
+                            </td>
+                            <td class="align-middle">{{ record.sugar_level }} mg/dL</td>
+                            <td class="align-middle">{{ record.sleep_hours }} hrs</td>
+                            <td class="align-middle text-success font-weight-500">
+                                {{ record.exercise_minutes }} min
+                            </td>
+                            <td class="align-middle text-center">
+                                {% if record.stress_level > 7 %}
+                                    <span class="badge badge-danger">High</span>
+                                {% elif record.stress_level > 4 %}
+                                    <span class="badge badge-warning text-dark">Medium</span>
+                                {% else %}
+                                    <span class="badge badge-success">Low</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 text-right align-middle">
+                                <a href="{% url 'health_record_edit' record.id %}" class="btn btn-sm btn-outline-info mr-1" title="Edit Entry">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'health_record_delete' record.id %}" class="btn btn-sm btn-outline-danger" 
+                                   onclick="return confirm('Permanently delete this health record?')" title="Delete Entry">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="fas fa-folder-open fa-3x mb-3"></i>
+                                    <p class="mb-0">No health records found in your profile.</p>
+                                    <a href="{% url 'health_record_create' %}" class="btn btn-sm btn-link">Start by adding one now</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4 p-3 bg-white rounded shadow-sm border-left border-primary d-flex align-items-center">
+        <i class="fas fa-lightbulb text-primary mr-3 fa-lg"></i>
+        <p class="small text-muted mb-0">
+            <strong>Tip:</strong> Use the <strong>"Reports"</strong> section to generate a detailed PDF health summary including progress charts and AI recommendations based on these logs.
+        </p>
+    </div>
+</div>
+
+<style>
+    /* Styling for the records table */
+    .table thead th {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .table tbody tr {
+        transition: background 0.2s ease-in-out;
+    }
+    
+    .table tbody tr:hover {
+        background-color: #f1f5f9;
+    }
+
+    .badge {
+        font-weight: 500;
+        border-radius: 4px;
+        padding: 0.5em 0.8em;
+    }
+    
+    .rounded-lg {
+        border-radius: 0.8rem !important;
+    }
+
+    .font-weight-500 {
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
